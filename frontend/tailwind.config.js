@@ -13,6 +13,7 @@ export default {
       yellow: "#FFC700",
       light_yellow: "#FFF455",
       almost_white: "#f7faf0",
+      white: "#ffffff",
     },
     extend: {},
   },
