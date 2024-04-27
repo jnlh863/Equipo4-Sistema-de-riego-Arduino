@@ -14,7 +14,8 @@
 #define WIFI_SSID "HOME-6C86"                                  
 #define WIFI_PASSWORD "5B6A6240DE485087"  
 #define API_KEY "AIzaSyBhGWjM2IEoMMO0l_OujUsBJPHfjKqCH90"
-#define DATABASE_URL "https://sistema-de-riego-24fc2-default-rtdb.firebaseio.com/"    
+#define DATABASE_URL "https://sistema-de-riego-24fc2-default-rtdb.firebaseio.com/"
+#define FIREBASE_PROJECT_ID "sistema-de-riego-24fc2"    
 
   FirebaseData fbdo;
   FirebaseAuth auth;
@@ -29,7 +30,7 @@
 
   float t;
   float h;
-  String ruta = "airquality";
+  String ruta = "ambientquality";
 
   void setup(){
 
@@ -79,6 +80,10 @@
   }
   
   void loop(){
+
+    String documentPath = "EspData/ambientquality";
+    FirebaseJson content;
+
     h = dht.readHumidity();
     t = dht.readTemperature();
     float ppm = gasSensor.getPPM();
@@ -91,6 +96,37 @@
     if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis == 0)){
       sendDataPrevMillis = millis();
     }
+
+    if(!isnan(t) && !isnan(h)){
+      content.set("fields/Temperature/stringValue", String(t, 2));
+      content.set("fields/Humidity/stringValue", String(h,2));
+
+      if(Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "Temperature") && Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "Humidity")){
+        Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
+      }else{
+        Serial.println(fbdo.errorReason());
+      }
+
+    }else{
+      Serial.println("Failed to read DHT data");
+    }
+
+    if(!isnan(ppm) && !isnan(medidaAn)){
+      content.set("fields/AnalogMeasurement/stringValue", String(medidaAn, 2));
+      content.set("fields/PPM/stringValue", String(ppm,2));
+      content.set("fields/Speed/stringValue", String(velocidad,2));
+
+      if(Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "AnalogMeasurement") && Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "PPM") && Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "Speed")){
+        Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
+      }else{
+        Serial.println(fbdo.errorReason());
+      }
+
+    }else{
+      Serial.println("Failed to read MQ135 data");
+    }
+
+
 
     if (!Firebase.RTDB.setFloat(&fbdo, ruta + "/Temperature", t)){
         Serial.println("Failed to Read from the Sensor");
@@ -127,4 +163,4 @@
       String arduino = String(strdht)+String(strmq);
       Serial.println(arduino);
 
-    }
+  }
