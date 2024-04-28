@@ -9,7 +9,7 @@ void setup() {
   while (!Serial) {
     ;
     }
-  lcd.print("Equipo 4");
+  lcd.print("    Equipo 4");
   pinMode(bombaAgua, OUTPUT);
   delay(1000);
 }
@@ -18,42 +18,47 @@ void setup() {
 
 void loop() {
 
-  digitalWrite(bombaAgua, LOW);
-  delay(8000);
-
-  digitalWrite(bombaAgua, HIGH);
-  delay(1000);
-
   if (Serial.available() > 0) { 
 
     String dataReceived = Serial.readStringUntil('\n'); 
     Serial.println("Datos recibidos desde Arduino:");
     Serial.println(dataReceived);
-
+    
     int hIndex = dataReceived.indexOf("H:");
     int tIndex = dataReceived.indexOf(" T:");
     int vHIndex = dataReceived.indexOf(" SoilMoisture:");
+    int estIndex = dataReceived.indexOf(" State:");
 
     String humedad = dataReceived.substring(hIndex + 2, tIndex);
     String temperatura = dataReceived.substring(tIndex + 3, vHIndex);
-    String sm = dataReceived.substring(vHIndex + 14);
+    String sm = dataReceived.substring(vHIndex + 14, estIndex);
+    String est = dataReceived.substring(estIndex + 7);
 
- 
+    Serial.println(est);
+    
     lcd.clear(); 
     lcd.setCursor(0, 0); 
     if (turno) {
-      lcd.print("Humdty:");
+      lcd.print("   Hum: ");
       lcd.print(humedad);
       lcd.setCursor(0, 1);
-      lcd.print("Temp:");
+      lcd.print("   Temp: ");
       lcd.print(temperatura);
     } else {
-      lcd.print("Soil Moisture:");
+      lcd.print(" Soil Moisture:");
       lcd.setCursor(0, 1);
-      lcd.print(sm);
+      lcd.print("    " + sm);
     }
 
     turno = !turno;
+
+    if(est.length() == 3){
+      digitalWrite(bombaAgua, LOW);
+      delay(5000);
+    }else{
+      digitalWrite(bombaAgua, HIGH);
+    }
+
 
   }
 }

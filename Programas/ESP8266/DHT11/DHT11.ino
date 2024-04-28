@@ -79,26 +79,34 @@
 
     h = dht.readHumidity();
     t = dht.readTemperature();
+    String estado = "off";
 
     int sensorHumedad = analogRead(sensorPin);
     float valorHumedad = ( 100.00 - ( (sensorHumedad/1023.00) * 100.00 ) );
 
-    mostrarInfo((int) t, (int) h, valorHumedad);
+    if(valorHumedad<0){
+      valorHumedad = 0;
+    }
+
+    if(t>=25 && h <=20){
+      estado = "on";
+    }
+
+    if(valorHumedad<70){
+      estado = "on";
+    }
+
+    mostrarInfo((int) t, h, valorHumedad, estado);
 
     if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis == 0)){
       sendDataPrevMillis = millis();
     }
 
     if(!isnan(t) && !isnan(h)){
-      content.set("fields/Temperature/stringValue", String(t, 2));
+      content.set("fields/Temperature/stringValue", String((int) t, 2));
       content.set("fields/Humidity/stringValue", String(h,2));
-
-      /*if(Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "Temperature") && Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "Humidity")){
-        Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
-      }else{
-        Serial.println(fbdo.errorReason());
-      }*/
-
+      Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "Temperature");
+      Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "Humidity");
     }else{
       Serial.println("Failed to read DHT data");
     }
@@ -106,19 +114,13 @@
 
     if(!isnan(sensorHumedad)){
       content.set("fields/SoilMoisture/stringValue", String(valorHumedad, 2));
-
-      /*if(Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "SoilMoisture")){
-        Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
-      }else{
-        Serial.println(fbdo.errorReason());
-      }*/
-
+      Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "SoilMoisture");
     }else{
       Serial.println("Failed to read Soil Moisture Sensor data");
     }
 
 
-    if (!Firebase.RTDB.setFloat(&fbdo, ruta + "/Temperature", t)){
+    if (!Firebase.RTDB.setFloat(&fbdo, ruta + "/Temperature", (int) t)){
         Serial.println("Failed to Read from the Sensor");
         Serial.println("REASON: " + fbdo.errorReason());
     }
@@ -137,11 +139,12 @@
     delay(1000);
   }
 
-  void mostrarInfo(int temp, int hum, float valorHumedad){
-      String strdht = String("H:")+String(h)+String(" %")+String(" T:")+String(t)+String(" C");
+  void mostrarInfo(int temp, float hum, float valorHumedad, String estado){
+      String strdht = String("H:")+String(hum)+String("%")+String(" T:")+String(temp)+String(" C");
       String strvH = String(" SoilMoisture:")+String(valorHumedad)+String("%") ;
+      String strEst = String(" State:")+estado;
 
-      String arduino = String(strdht)+String(strvH);
+      String arduino = String(strdht)+String(strvH)+strEst;
       Serial.println(arduino);
 
   }
