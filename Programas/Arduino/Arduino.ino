@@ -1,6 +1,7 @@
 #include <LiquidCrystal.h>
 
 LiquidCrystal lcd(2,3,4,5,6,7);
+int bombaAgua = 8;
 
 void setup() {
   lcd.begin(16,2);
@@ -9,49 +10,47 @@ void setup() {
     ;
     }
   lcd.print("Equipo 4");
+  pinMode(bombaAgua, OUTPUT);
   delay(1000);
 }
 
-  String strdht;  
-  String strmq;
   bool turno = true;
 
 void loop() {
+
+  digitalWrite(bombaAgua, LOW);
+  delay(8000);
+
+  digitalWrite(bombaAgua, HIGH);
+  delay(1000);
+
   if (Serial.available() > 0) { 
+
     String dataReceived = Serial.readStringUntil('\n'); 
     Serial.println("Datos recibidos desde Arduino:");
     Serial.println(dataReceived);
 
-
     int hIndex = dataReceived.indexOf("H:");
     int tIndex = dataReceived.indexOf(" T:");
-    int mqIndex = dataReceived.indexOf("MQ:");
-    int vIndex = dataReceived.indexOf(" V:");
-    int ppmIndex = dataReceived.indexOf(" PPM:");
+    int vHIndex = dataReceived.indexOf(" SoilMoisture:");
 
     String humedad = dataReceived.substring(hIndex + 2, tIndex);
-    String temperatura = dataReceived.substring(tIndex + 3, mqIndex);
-    String mq = dataReceived.substring(mqIndex + 3, vIndex);
-    String v = dataReceived.substring(vIndex + 3, ppmIndex);
-    String ppm = dataReceived.substring(ppmIndex + 6);
+    String temperatura = dataReceived.substring(tIndex + 3, vHIndex);
+    String sm = dataReceived.substring(vHIndex + 14);
 
  
     lcd.clear(); 
     lcd.setCursor(0, 0); 
     if (turno) {
-      lcd.print("Humedad:");
+      lcd.print("Humdty:");
       lcd.print(humedad);
       lcd.setCursor(0, 1);
       lcd.print("Temp:");
       lcd.print(temperatura);
     } else {
-      lcd.print("MQ:");
-      lcd.print(mq);
-      lcd.print(" V:");
-      lcd.print(v); 
+      lcd.print("Soil Moisture:");
       lcd.setCursor(0, 1);
-      lcd.print(" PPM:");
-      lcd.print(ppm);
+      lcd.print(sm);
     }
 
     turno = !turno;
