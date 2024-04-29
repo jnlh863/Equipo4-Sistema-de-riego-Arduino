@@ -46,6 +46,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import NavBar from "./NavBar.vue";
+import { db } from "../firebase.ts";
+import { collection, getDocs, setDoc } from "firebase/firestore";
 import Container from "./Container.vue";
 const humidityAir = ref(25);
 const humiditySoil = ref();
@@ -63,4 +65,6 @@ const descriptionHumSoil = ref(
 const descriptionAirQual = ref(
   "Los efectos de la contaminación atmosférica se pueden manifestar por la alteración de diversos mecanismos vitales de las plantas: las funciones metabólicas y los tejidos se pueden ver afectados por diversos compuestos gaseosos con azufre o flúor."
 );
+await collection(db, "datos");
+await getDocs(collection);
 </script>
