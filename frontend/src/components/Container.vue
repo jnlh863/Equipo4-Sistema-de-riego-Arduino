@@ -1,16 +1,16 @@
 <template>
   <div
-    class="border-4 rounded-lg py-3 bg-white px-10 drop-shadow-lg min-h-46 border-soft_green w-full"
+    class="border-4 rounded-lg py-3 bg-white h-30 px-10 drop-shadow-lg border-soft_green w-full"
   >
     <div>
-      <div name="main tag" class="text-3xl">
+      <div name="main tag" class="text-md">
         <span>{{ props.typeOfRead }}: </span>
         <span>{{ props.value }} {{ props.measure }}</span>
       </div>
       <img :src="props.src" alt="" />
     </div>
     <hr class="w-full h-2 mt-2" />
-    <div name="descripcion">
+    <div name="descripcion" class="text-xs">
       {{ props.description }}
     </div>
   </div>
