@@ -3,6 +3,7 @@
 LiquidCrystal lcd(2,3,4,5,6,7);
 int bombaAgua = 8;
 
+
 void setup() {
   lcd.begin(16,2);
   Serial.begin(115200);
@@ -11,7 +12,6 @@ void setup() {
     }
   lcd.print("    Equipo 4");
   pinMode(bombaAgua, OUTPUT);
-  delay(1000);
 }
 
   bool turno = true;
@@ -21,21 +21,22 @@ void loop() {
   if (Serial.available() > 0) { 
 
     String dataReceived = Serial.readStringUntil('\n'); 
-    Serial.println("Datos recibidos desde Arduino:");
-    Serial.println(dataReceived);
-    
+    dataReceived.trim();
     int hIndex = dataReceived.indexOf("H:");
     int tIndex = dataReceived.indexOf(" T:");
     int vHIndex = dataReceived.indexOf(" SoilMoisture:");
     int estIndex = dataReceived.indexOf(" State:");
+    int tempIndex = dataReceived.indexOf(" Temp:");
+    int inteIndex = dataReceived.indexOf(" B:");
 
     String humedad = dataReceived.substring(hIndex + 2, tIndex);
     String temperatura = dataReceived.substring(tIndex + 3, vHIndex);
     String sm = dataReceived.substring(vHIndex + 14, estIndex);
-    String est = dataReceived.substring(estIndex + 7);
+    String est = dataReceived.substring(estIndex + 7, tempIndex);
+    String temp = dataReceived.substring(tempIndex + 6, inteIndex);
+    String inter = dataReceived.substring(inteIndex+3);
+  
 
-    Serial.println(est);
-    
     lcd.clear(); 
     lcd.setCursor(0, 0); 
     if (turno) {
@@ -52,13 +53,29 @@ void loop() {
 
     turno = !turno;
 
-    if(est.length() == 3){
+    if(inter == "1"){
+      if(temp.toInt() != 0){  
+        lcd.clear();
+        lcd.print("   Regando... ");
+        digitalWrite(bombaAgua, LOW);
+        delay(temp.toInt());
+        digitalWrite(bombaAgua, HIGH);
+      }
+    } 
+
+    digitalWrite(bombaAgua, HIGH);
+
+    if(est.length() == 2){
+      lcd.clear();
+      lcd.print("   Regando... ");
       digitalWrite(bombaAgua, LOW);
       delay(5000);
     }else{
       digitalWrite(bombaAgua, HIGH);
     }
 
-
+    String off = "false";
+    Serial.println(off);
   }
+  delay(1000);
 }
