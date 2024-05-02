@@ -19,7 +19,7 @@
 const props = defineProps<{
   src: string;
   typeOfRead: string;
-  value: number;
+  value: string;
   description: string;
   measure: string;
 }>();
