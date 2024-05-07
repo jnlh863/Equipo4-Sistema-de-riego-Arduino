@@ -9,8 +9,8 @@
 
 #define DHTPIN 4
 #define DHTTYPE DHT11 // DHT 11
-#define WIFI_SSID "your_user"                                  
-#define WIFI_PASSWORD "your_password"  
+#define WIFI_SSID "HOME-6C86"                                  
+#define WIFI_PASSWORD "5B6A6240DE485087"  
 #define API_KEY "AIzaSyBhGWjM2IEoMMO0l_OujUsBJPHfjKqCH90"
 #define DATABASE_URL "https://sistema-de-riego-24fc2-default-rtdb.firebaseio.com/"
 #define FIREBASE_PROJECT_ID "sistema-de-riego-24fc2"    
@@ -97,14 +97,6 @@
       estado = "on";
     }
 
-    if (Serial.available() > 0) { 
-      String dataReceived = Serial.readStringUntil('\n');
-      if(dataReceived.length() == 6){
-        content.set("fields/waterPlants/booleanValue", false);
-        Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPathT.c_str(), content.raw(), "waterPlants");
-      }  
-    }
-
     if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis == 0)){
       sendDataPrevMillis = millis();
     }
@@ -143,6 +135,14 @@
     }
 
      
+    if (Serial.available() > 0) { 
+      String dataReceived = Serial.readStringUntil('\n');
+      if(dataReceived.length() == 6){
+        content.set("fields/waterPlants/booleanValue", false);
+        Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPathT.c_str(), content.raw(), "waterPlants");
+      }  
+    }
+
 
     if (!Firebase.RTDB.setFloat(&fbdo, ruta + "/Temperature", (int) t)){
         Serial.println("Failed to Read from the Sensor");

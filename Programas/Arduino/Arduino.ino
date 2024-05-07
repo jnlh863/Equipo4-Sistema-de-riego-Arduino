@@ -1,3 +1,5 @@
+#include <Wire.h>
+
 #include <LiquidCrystal.h>
 
 LiquidCrystal lcd(2,3,4,5,6,7);
@@ -37,7 +39,7 @@ void loop() {
     String inter = dataReceived.substring(inteIndex+3);
   
 
-    lcd.clear(); 
+    Wire.setClock(10000);
     lcd.setCursor(0, 0); 
     if (turno) {
       lcd.print("   Hum: ");
@@ -55,20 +57,26 @@ void loop() {
 
     if(inter == "1"){
       if(temp.toInt() != 0){  
-        lcd.clear();
+        Wire.setClock(10000);
+        lcd.begin(16, 2);
         lcd.print("   Regando... ");
         digitalWrite(bombaAgua, LOW);
+        lcd.clear();
         delay(temp.toInt());
-        digitalWrite(bombaAgua, HIGH);
+        
       }
-    } 
+    }else{
+      digitalWrite(bombaAgua, HIGH);
+    }
 
-    digitalWrite(bombaAgua, HIGH);
+    
 
     if(est.length() == 2){
-      lcd.clear();
+      Wire.setClock(10000);
+      lcd.begin(16, 2);
       lcd.print("   Regando... ");
       digitalWrite(bombaAgua, LOW);
+      lcd.clear();
       delay(5000);
     }else{
       digitalWrite(bombaAgua, HIGH);
