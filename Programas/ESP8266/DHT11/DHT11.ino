@@ -1,8 +1,8 @@
-#include <MQ135.h>
 #include "DHT.h"
 #include <SoftwareSerial.h> 
 #include <ESP8266WiFi.h>
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <Firebase_ESP_Client.h>
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
@@ -75,6 +75,7 @@
   void loop(){
 
     String documentPath = "EspData/ambientquality";
+    String documentPathT = "EspData/intervals";
     FirebaseJson content;
 
     h = dht.readHumidity();
@@ -92,18 +93,16 @@
       estado = "on";
     }
 
-    if(valorHumedad<70){
+    if(valorHumedad<20){
       estado = "on";
     }
-
-    mostrarInfo((int) t, h, valorHumedad, estado);
 
     if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis == 0)){
       sendDataPrevMillis = millis();
     }
 
     if(!isnan(t) && !isnan(h)){
-      content.set("fields/Temperature/stringValue", String((int) t, 2));
+      content.set("fields/Temperature/stringValue", String(t, 2));
       content.set("fields/Humidity/stringValue", String(h,2));
       Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "Temperature");
       Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "Humidity");
@@ -117,6 +116,31 @@
       Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "SoilMoisture");
     }else{
       Serial.println("Failed to read Soil Moisture Sensor data");
+    }
+
+    String path = "EspData/intervals";
+
+    if(Firebase.Firestore.getDocument(&fbdo, FIREBASE_PROJECT_ID, "", path.c_str(), "")){
+
+      StaticJsonDocument<384> doc;
+
+      DeserializationError error = deserializeJson(doc, fbdo.payload().c_str());
+
+      if (!error) {
+          const char* name = doc["name"]; 
+          const int temp = doc["fields"]["interval"]["integerValue"];
+          const bool interruptor = doc["fields"]["waterPlants"]["booleanValue"];
+          mostrarInfo((int) t, h, valorHumedad, estado, temp, interruptor);
+      }
+    }
+
+     
+    if (Serial.available() > 0) { 
+      String dataReceived = Serial.readStringUntil('\n');
+      if(dataReceived.length() == 6){
+        content.set("fields/waterPlants/booleanValue", false);
+        Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPathT.c_str(), content.raw(), "waterPlants");
+      }  
     }
 
 
@@ -135,16 +159,17 @@
         Serial.println("REASON: " + fbdo.errorReason());
     }
 
-
-    delay(1000);
+    delay(3000);
   }
 
-  void mostrarInfo(int temp, float hum, float valorHumedad, String estado){
+  void mostrarInfo(int temp, float hum, float valorHumedad, String estado, int t, bool inter){
       String strdht = String("H:")+String(hum)+String("%")+String(" T:")+String(temp)+String(" C");
       String strvH = String(" SoilMoisture:")+String(valorHumedad)+String("%") ;
       String strEst = String(" State:")+estado;
+      String strtemp = String(" Temp:") + String(t);
+      String strinter = String(" B:") + String(inter);
 
-      String arduino = String(strdht)+String(strvH)+strEst;
+      String arduino = String(strdht)+String(strvH)+strEst+String(strtemp)+String(strinter);
       Serial.println(arduino);
 
   }
