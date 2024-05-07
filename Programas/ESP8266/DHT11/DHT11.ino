@@ -1,4 +1,3 @@
-#include <MQ135.h>
 #include "DHT.h"
 #include <SoftwareSerial.h> 
 #include <ESP8266WiFi.h>
@@ -10,8 +9,8 @@
 
 #define DHTPIN 4
 #define DHTTYPE DHT11 // DHT 11
-#define WIFI_SSID "HOME-6C86"                                  
-#define WIFI_PASSWORD "5B6A6240DE485087"  
+#define WIFI_SSID "your_user"                                  
+#define WIFI_PASSWORD "your_password"  
 #define API_KEY "AIzaSyBhGWjM2IEoMMO0l_OujUsBJPHfjKqCH90"
 #define DATABASE_URL "https://sistema-de-riego-24fc2-default-rtdb.firebaseio.com/"
 #define FIREBASE_PROJECT_ID "sistema-de-riego-24fc2"    
